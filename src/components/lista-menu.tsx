@@ -14,11 +14,12 @@ export function ListaMenu() {
   const router = useRouter();
 
   const menusList: Menu[] = [
-    { texto: "Vendas", acao: "/vendas" },
+    { texto: "Vendas", acao: "/vendas-cli" },
     { texto: "Fechamento", acao: "/fechamento" }
   ];
   
   const selecionarMenu = (acao: string) => {
+    console.log(acao);
     router.push(acao);
   };
   
