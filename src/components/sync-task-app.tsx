@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 interface Task {
   id: string;
-  text: string;
+  nome: string;
   completed: boolean;
   createdAt: any;
 }
@@ -33,7 +33,7 @@ export function SyncTaskApp() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "cliente"), orderBy("nome", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const taskList: Task[] = [];
       snapshot.forEach((doc) => {
@@ -51,7 +51,7 @@ export function SyncTaskApp() {
     if (!newTaskText.trim()) return;
 
     try {
-      await addDoc(collection(db, "tasks"), {
+      await addDoc(collection(db, "cliente"), {
         text: newTaskText.trim(),
         completed: false,
         createdAt: serverTimestamp(),
@@ -64,7 +64,7 @@ export function SyncTaskApp() {
 
   const toggleTask = async (id: string, completed: boolean) => {
     try {
-      await updateDoc(doc(db, "tasks", id), {
+      await updateDoc(doc(db, "cliente", id), {
         completed: !completed,
       });
     } catch (error) {
@@ -74,7 +74,7 @@ export function SyncTaskApp() {
 
   const deleteTask = async (id: string) => {
     try {
-      await deleteDoc(doc(db, "tasks", id));
+      await deleteDoc(doc(db, "cliente", id));
     } catch (error) {
       console.error("Error deleting task: ", error);
     }
@@ -141,7 +141,7 @@ export function SyncTaskApp() {
                       "text-lg transition-all duration-300 font-body",
                       task.completed ? "task-completed" : "text-foreground"
                     )}>
-                      {task.text}
+                      {task.nome}
                     </span>
                   </div>
                   <Button
