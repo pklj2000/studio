@@ -17,66 +17,53 @@ import { Plus, Trash2, CheckCircle2, ListTodo, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
-interface Cliente {
-  id: string;
-  nome: string;
-  vendedor: string;
-  ordem: number;  
-  atendido: boolean;
-}
-
-export function ListaCliente() {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+export function ListaProdutos() {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const q = query(collection(db, "cliente"), orderBy("nome", "desc"));
+    const q = query(collection(db, "produto"), orderBy("nome", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const clienteList: Cliente[] = [];
+      const produtoList: Produto[] = [];
       snapshot.forEach((doc) => {
-        clienteList.push({ id: doc.id, ...doc.data() } as Cliente);
+        produtoList.push({ id: doc.id, ...doc.data() } as Produto);
       });
-      setClientes(clienteList);
+      setProdutos(produtoList);
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
   
-  const selecionarCliente = (id: string) => {
-    localStorage.setItem("idCliente", JSON.stringify(id));
-    router.push("/vendas-prod");
+  const selecionarProduto = (item: Produto) => {
+    localStorage.setItem("idProduto", JSON.stringify(item.id));
+    router.push("/vendas-qtd");
   }
-  
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-headline font-bold tracking-tight text-foreground">Clientes</h1>
+        <h1 className="text-3xl font-headline font-bold tracking-tight text-foreground">Produtos</h1>
       </div>
 
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardContent className="p-0">
             <div className="divide-y divide-border">
-              {clientes.map((cliente) => (
+              {produtos.map((produto) => (
                 <div 
-                  key={cliente.id} 
+                  key={produto.id} 
+                  onClick={() => selecionarProduto(produto)}
                   className={cn(
                     "group flex items-center justify-between p-4 transition-all hover:bg-accent/5 task-item-enter"
                   )}
                 >
-                  <div 
-                    onClick={() => selecionarCliente(cliente.id)}
-                    className="flex items-center gap-4 flex-1">
-                    <Checkbox
-                      checked={cliente.atendido}                      
-                      className="w-5 h-5 border-2 data-[state=checked]:bg-accent data-[state=checked]:border-accent transition-colors"
-                    />
+                  <div className="flex items-center gap-4 flex-1">
                     <span className={cn(
                       "text-lg transition-all duration-300 font-body",
-                      cliente.atendido ? "task-completed" : "text-foreground"
+                      "text-foreground"
                     )}>
-                      {cliente.nome}
+                      {produto.nome}
                     </span>
                   </div>
                 </div>
