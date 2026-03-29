@@ -14,7 +14,7 @@ export function ListaMenu() {
   const router = useRouter();
 
   const menusList: Menu[] = [
-    { texto: "Vendas", acao: "/vendas-cli" },
+    { texto: "Vendas", acao: "/vendas-data" },
     { texto: "Fechamento", acao: "/fechamento" }
   ];
   

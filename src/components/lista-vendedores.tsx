@@ -42,7 +42,7 @@ export function ListaVendedores() {
   
   const selecionarVendedor = (id: string) => {
     try {
-      localStorage.setItem("idVendedor", JSON.stringify(id));
+      localStorage.setItem("idVendedor", id);
       router.push("/menu");
     } catch (error) {
       console.error("Error", error);

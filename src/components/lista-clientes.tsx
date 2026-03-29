@@ -3,49 +3,82 @@
 import React, { useState, useEffect } from "react";
 import { 
   collection, 
-  addDoc, 
+  where,
   onSnapshot, 
   query, 
   orderBy
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, CheckCircle2, ListTodo, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { firebasehoje } from "@/lib/firebase-data";
+import { ReactServerDOMTurbopackClient } from "next/dist/server/route-modules/app-page/vendored/ssr/entrypoints";
 
 interface Cliente {
   id: string;
   nome: string;
-  vendedor: string;
+  idVendedor: string;
   ordem: number;  
   atendido: boolean;
 }
 
 export function ListaCliente() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [vendas, setVendas] = useState<Venda[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataRef, setDataRef] = useState("");
   const router = useRouter();
+  
 
   useEffect(() => {
-    const q = query(collection(db, "cliente"), orderBy("nome", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+
+    var idVendedor = localStorage.getItem("idVendedor")?.toString().replaceAll('"','') ?? "";  
+    var dataCorrente = localStorage.getItem("vendasData")?.toString().replaceAll('"','') ?? "";  
+
+    setDataRef(dataCorrente);
+
+    if(idVendedor == null) return;
+    const q = query(collection(db, "cliente"), where("idVendedor", "==", idVendedor));
+    const unsubscribeClientes = onSnapshot(q, (snapshot) => {
       const clienteList: Cliente[] = [];
       snapshot.forEach((doc) => {
+        console.log("clienteList", doc.data() as Cliente);
         clienteList.push({ id: doc.id, ...doc.data() } as Cliente);
       });
+      
       setClientes(clienteList);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    console.log("cli", idVendedor);
+    console.log("cli", dataCorrente);
+
+    const v = query(collection(db, "venda"),
+    where("data", "==", dataCorrente), 
+    //where("idVendedor", "==", idVendedor)
+    );
+    const unsubscribeVendas = onSnapshot(v, (snapshot) => {
+      const vendaList: Venda[] = [];
+      snapshot.forEach((doc) => {
+        vendaList.push({ id: doc.id, ...doc.data() } as Venda);
+      });
+      console.log("vendaList", vendaList);
+      setVendas(vendaList);
+      setLoading(false);
+    });
+
+    return () => {
+      unsubscribeClientes();
+      unsubscribeVendas();
+    };
   }, []);
   
   const selecionarCliente = (id: string) => {
-    localStorage.setItem("idCliente", JSON.stringify(id));
+    console.log("selecionarCliente", id);
+    localStorage.removeItem("idProduto")
+    localStorage.setItem("idCliente", id);
     router.push("/vendas-prod");
   }
   
@@ -67,17 +100,22 @@ export function ListaCliente() {
                 >
                   <div 
                     onClick={() => selecionarCliente(cliente.id)}
-                    className="flex items-center gap-4 flex-1">
-                    <Checkbox
-                      checked={cliente.atendido}                      
-                      className="w-5 h-5 border-2 data-[state=checked]:bg-accent data-[state=checked]:border-accent transition-colors"
-                    />
-                    <span className={cn(
-                      "text-lg transition-all duration-300 font-body",
-                      cliente.atendido ? "task-completed" : "text-foreground"
-                    )}>
-                      {cliente.nome}
-                    </span>
+                    className="flex flex-wrap items-center gap-x-4 gap-y-0">
+                      <div className="basis-50 items-center">
+                        <Checkbox checked={cliente.atendido} className="w-5 h-5 border-2 data-[state=checked]:bg-accent data-[state=checked]:border-accent transition-colors"/>
+                      </div>
+                      <div className="basis-50">  
+                        <span className={cn("text-lg transition-all duration-300 font-body",
+                          cliente.atendido ? "task-completed" : "text-foreground"
+                          )}>
+                          {cliente.nome}
+                        </span>
+                      </div>  
+                      <div className="basis-full">                    
+                        {vendas.map((item, index) => (
+                          <><span className="text-sm">{item.descProduto}</span><br/></>
+                        ))}
+                      </div>  
                   </div>
                 </div>
               ))}

@@ -26,9 +26,11 @@ export function ListaProdutos() {
     const q = query(collection(db, "produto"), orderBy("nome", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const produtoList: Produto[] = [];
+      produtoList.push({ id: "0", nome: "Sem compra" } as Produto);
       snapshot.forEach((doc) => {
         produtoList.push({ id: doc.id, ...doc.data() } as Produto);
       });
+      produtoList.push({ id: "1", nome: "Outro produto" } as Produto);
       setProdutos(produtoList);
       setLoading(false);
     });
@@ -37,15 +39,12 @@ export function ListaProdutos() {
   }, []);
   
   const selecionarProduto = (item: Produto) => {
-    localStorage.setItem("idProduto", JSON.stringify(item.id));
+    localStorage.setItem("idProduto", item.id);
     router.push("/vendas-qtd");
   }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-headline font-bold tracking-tight text-foreground">Produtos</h1>
-      </div>
 
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardContent className="p-0">
