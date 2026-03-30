@@ -15,6 +15,8 @@ export function ListaMenu() {
 
   const menusList: Menu[] = [
     { texto: "Vendas", acao: "/vendas-data" },
+    { texto: "Consulta Preço", acao: "/produto" },
+    { texto: "Histórico Vendas", acao: "/vendas-hist" },
     { texto: "Fechamento", acao: "/fechamento" }
   ];
   

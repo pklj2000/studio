@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -12,26 +11,30 @@ import { db } from "@/lib/firebase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
-interface ListaClienteProps {
-  onSelect?: (id: string) => void;
-}
 
-export function ListaCliente({ onSelect }: ListaClienteProps) {
+export function ListaClienteVenda() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [vendas, setVendas] = useState<Venda[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataRef, setDataRef] = useState("");
+  const router = useRouter();
+  
 
   useEffect(() => {
-    const idVendedorRaw = localStorage.getItem("idVendedor");
-    const idVendedor = idVendedorRaw?.toString().replaceAll('"', '') ?? "";
 
-    if (!idVendedor) return;
-    
+    var idVendedor = localStorage.getItem("idVendedor")?.toString().replaceAll('"','') ?? "";  
+    var dataCorrente = localStorage.getItem("vendasData")?.toString().replaceAll('"','') ?? "";  
+
+    setDataRef(dataCorrente);
+
+    if(idVendedor == null) return;
     const q = query(collection(db, "cliente"), where("idVendedor", "==", idVendedor));
     const unsubscribeClientes = onSnapshot(q, (snapshot) => {
       const clienteList: Cliente[] = [];
-      clienteList.push({ id: "*", nome: "Todos", idVendedor: "*", atendido: false, ordem: 0 } as Cliente);
       snapshot.forEach((doc) => {
+        console.log("clienteList", doc.data() as Cliente);
         clienteList.push({ id: doc.id, ...doc.data() } as Cliente);
       });
       
@@ -39,16 +42,35 @@ export function ListaCliente({ onSelect }: ListaClienteProps) {
       setLoading(false);
     });
 
+    console.log("cli", idVendedor);
+    console.log("cli", dataCorrente);
+
+    const v = query(collection(db, "venda"),
+    where("data", "==", dataCorrente), 
+    //where("idVendedor", "==", idVendedor)
+    );
+    const unsubscribeVendas = onSnapshot(v, (snapshot) => {
+      const vendaList: Venda[] = [];
+      snapshot.forEach((doc) => {
+        vendaList.push({ id: doc.id, ...doc.data() } as Venda);
+      });
+      console.log("vendaList", vendaList);
+      setVendas(vendaList);
+      setLoading(false);
+    });
+
     return () => {
       unsubscribeClientes();
+      unsubscribeVendas();
     };
   }, []);
   
   const selecionarCliente = (id: string) => {
-    if (onSelect) {
-      onSelect(id);
-    }
-  };
+    console.log("selecionarCliente", id);
+    localStorage.removeItem("idProduto")
+    localStorage.setItem("idCliente", id);
+    router.push("/vendas-prod");
+  }
   
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -63,11 +85,12 @@ export function ListaCliente({ onSelect }: ListaClienteProps) {
                 <div 
                   key={cliente.id} 
                   className={cn(
-                    "group flex items-center justify-between p-4 cursor-pointer transition-all hover:bg-accent/5 task-item-enter"
+                    "group flex items-center justify-between p-4 transition-all hover:bg-accent/5 task-item-enter"
                   )}
-                  onClick={() => selecionarCliente(cliente.id)}
                 >
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-0">
+                  <div 
+                    onClick={() => selecionarCliente(cliente.id)}
+                    className="flex flex-wrap items-center gap-x-4 gap-y-0">
                       <div className="basis-50 items-center">
                         <Checkbox checked={cliente.atendido} className="w-5 h-5 border-2 data-[state=checked]:bg-accent data-[state=checked]:border-accent transition-colors"/>
                       </div>
@@ -78,12 +101,18 @@ export function ListaCliente({ onSelect }: ListaClienteProps) {
                           {cliente.nome}
                         </span>
                       </div>  
+                      <div className="basis-full">                    
+                        {vendas.map((item, index) => (
+                          <><span className="text-sm">{item.descProduto}</span><br/></>
+                        ))}
+                      </div>  
                   </div>
                 </div>
               ))}
             </div>
         </CardContent>
       </Card>
+     
     </div>
   );
 }
