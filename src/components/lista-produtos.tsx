@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -10,37 +9,47 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 interface ListaProdutosProps {
   showAll?: boolean;
+  showAdd?: boolean;
 }
 
-export function ListaProdutos({ showAll = false }: ListaProdutosProps) {
+interface Produto {
+  id: string;
+  nome: string;
+  preco_venda: number;
+}
+
+export function ListaProdutos({ showAll = false, showAdd = false }: ListaProdutosProps) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const q = query(collection(db, "produto"), orderBy("nome", "desc"));
+    const q = query(collection(db, "produto"), orderBy("nome", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const produtoList: Produto[] = [];
       
-      // Determine if we should show extra helper items
-      const idCliente = typeof window !== "undefined" ? localStorage.getItem("idCliente") : null;
-      const shouldShowExtras = showAll;
-
-      if (shouldShowExtras) {
-        produtoList.push({ id: "0", nome: "Sem compra" } as Produto);
+      if (showAll) {
+        produtoList.push({ id: "0", nome: "Sem compra", preco_venda: 0 } as Produto);
       }
 
       snapshot.forEach((doc) => {
-        produtoList.push({ id: doc.id, ...doc.data() } as Produto);
+        const data = doc.data();
+        produtoList.push({ 
+          id: doc.id, 
+          nome: data.nome || "Sem nome",
+          preco_venda: data.preco_venda || 0
+        } as Produto);
       });
 
-      if (shouldShowExtras) {
-        produtoList.push({ id: "1", nome: "Outro produto" } as Produto);
+      if (showAll) {
+        produtoList.push({ id: "1", nome: "Outro produto", preco_venda: 0 } as Produto);
       }
 
       setProdutos(produtoList);
@@ -56,7 +65,7 @@ export function ListaProdutos({ showAll = false }: ListaProdutosProps) {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="relative space-y-8 animate-in fade-in duration-500 pb-20">
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
@@ -68,31 +77,38 @@ export function ListaProdutos({ showAll = false }: ListaProdutosProps) {
                   key={produto.id} 
                   onClick={() => selecionarProduto(produto)}
                   className={cn(
-                    "group flex items-center justify-between p-4 cursor-pointer transition-all hover:bg-accent/5 task-item-enter"
+                    "group flex items-center justify-between p-4 cursor-pointer transition-all hover:bg-accent/5"
                   )}
                 >
                   <div className="flex items-center gap-4 flex-1">
-                    <span className={cn(
-                      "text-lg transition-all duration-300 font-body",
-                      "text-foreground"
-                    )}>
+                    <span className="text-lg font-body text-foreground">
                       {produto.nome}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center px-2">
-                  <span className="text-lg font-bold text-primary">
-                    {produto.preco_venda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                  </span>
-                </div>
-
-
+                    <span className="text-lg font-bold text-primary">
+                      {produto.preco_venda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {showAdd && (
+        <div className="fixed bottom-8 right-8 md:right-[calc(50%-13rem)] z-50">
+          <Button 
+            onClick={() => router.push("/produto-cad")}
+            size="icon" 
+            className="h-16 w-16 rounded-full shadow-2xl bg-primary hover:bg-primary/90 transition-transform active:scale-95"
+          >
+            <Plus className="h-8 w-8 text-white" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
