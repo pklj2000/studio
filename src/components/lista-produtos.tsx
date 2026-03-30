@@ -29,7 +29,7 @@ export function ListaProdutos({ showAll = false }: ListaProdutosProps) {
       
       // Determine if we should show extra helper items
       const idCliente = typeof window !== "undefined" ? localStorage.getItem("idCliente") : null;
-      const shouldShowExtras = !showAll && idCliente !== "*";
+      const shouldShowExtras = showAll;
 
       if (shouldShowExtras) {
         produtoList.push({ id: "0", nome: "Sem compra" } as Produto);
@@ -79,6 +79,14 @@ export function ListaProdutos({ showAll = false }: ListaProdutosProps) {
                       {produto.nome}
                     </span>
                   </div>
+
+                  <div className="flex justify-between items-center px-2">
+                  <span className="text-lg font-bold text-primary">
+                    {produto.preco_venda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                </div>
+
+
                 </div>
               ))}
             </div>

@@ -18,7 +18,7 @@ export default function VendasCliPage() {
                 <h1 className="text-3xl font-bold tracking-tight">Produtos</h1>
               </div>
       
-        <ListaProdutos />
+        <ListaProdutos showAll />
       </div>
     </div>
   );
