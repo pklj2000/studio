@@ -1,23 +1,23 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { 
   collection, 
-  addDoc, 
   onSnapshot, 
   query, 
   orderBy
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, CheckCircle2, ListTodo, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
-export function ListaProdutos() {
+interface ListaProdutosProps {
+  showAll?: boolean;
+}
+
+export function ListaProdutos({ showAll = false }: ListaProdutosProps) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -26,17 +26,29 @@ export function ListaProdutos() {
     const q = query(collection(db, "produto"), orderBy("nome", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const produtoList: Produto[] = [];
-      produtoList.push({ id: "0", nome: "Sem compra" } as Produto);
+      
+      // Determine if we should show extra helper items
+      const idCliente = typeof window !== "undefined" ? localStorage.getItem("idCliente") : null;
+      const shouldShowExtras = !showAll && idCliente !== "*";
+
+      if (shouldShowExtras) {
+        produtoList.push({ id: "0", nome: "Sem compra" } as Produto);
+      }
+
       snapshot.forEach((doc) => {
         produtoList.push({ id: doc.id, ...doc.data() } as Produto);
       });
-      produtoList.push({ id: "1", nome: "Outro produto" } as Produto);
+
+      if (shouldShowExtras) {
+        produtoList.push({ id: "1", nome: "Outro produto" } as Produto);
+      }
+
       setProdutos(produtoList);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [showAll]);
   
   const selecionarProduto = (item: Produto) => {
     localStorage.setItem("idProduto", item.id);
@@ -45,16 +57,18 @@ export function ListaProdutos() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardContent className="p-0">
+          {loading ? (
+            <div className="p-8 text-center text-muted-foreground">Carregando produtos...</div>
+          ) : (
             <div className="divide-y divide-border">
               {produtos.map((produto) => (
                 <div 
                   key={produto.id} 
                   onClick={() => selecionarProduto(produto)}
                   className={cn(
-                    "group flex items-center justify-between p-4 transition-all hover:bg-accent/5 task-item-enter"
+                    "group flex items-center justify-between p-4 cursor-pointer transition-all hover:bg-accent/5 task-item-enter"
                   )}
                 >
                   <div className="flex items-center gap-4 flex-1">
@@ -68,9 +82,9 @@ export function ListaProdutos() {
                 </div>
               ))}
             </div>
+          )}
         </CardContent>
       </Card>
-     
     </div>
   );
 }

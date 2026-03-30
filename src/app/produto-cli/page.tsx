@@ -1,11 +1,11 @@
 
-import { ListaClienteVenda } from "@/components/lista-clientes-venda";
+import { ListaProdutos } from "@/components/lista-produtos";
 
 export default function ProdutoCliPage() {
   return (
     <div className="min-h-screen bg-background py-12 px-4 md:px-0">
       <div className="max-w-2xl mx-auto">
-        <ListaClienteVenda />
+        <ListaProdutos />
       </div>
     </div>
   );

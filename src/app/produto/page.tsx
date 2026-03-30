@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 import { ListaCliente } from "@/components/lista-clientes";
 
-export default function VendasCliPage() {
+export default function ProdutoPage() {
   const router = useRouter();
 
   const handleClienteSelecionado = (id: string) => {
