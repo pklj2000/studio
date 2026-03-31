@@ -14,18 +14,19 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
-interface ListaProdutosProps {
-  showAll?: boolean;
-  showAdd?: boolean;
-}
-
 interface Produto {
   id: string;
   nome: string;
   preco_venda: number;
 }
 
-export function ListaProdutos({ showAll = false, showAdd = false }: ListaProdutosProps) {
+interface ListaProdutosProps {
+  showAll?: boolean;
+  showAdd?: boolean;
+  onSelect?: (produto: Produto) => void;
+}
+
+export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: ListaProdutosProps) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -60,8 +61,12 @@ export function ListaProdutos({ showAll = false, showAdd = false }: ListaProduto
   }, [showAll]);
   
   const selecionarProduto = (item: Produto) => {
-    localStorage.setItem("idProduto", item.id);
-    router.push("/vendas-qtd");
+    if (onSelect) {
+      onSelect(item);
+    } else {
+      localStorage.setItem("idProduto", item.id);
+      router.push("/vendas-qtd");
+    }
   }
 
   return (

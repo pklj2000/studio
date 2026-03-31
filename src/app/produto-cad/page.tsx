@@ -18,7 +18,8 @@ export default function ProdutoCadPage() {
   const [formData, setFormData] = useState({
     nome: "",
     preco_venda: "",
-    un: "UN"
+    un: "UN",
+    categoria: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +39,7 @@ export default function ProdutoCadPage() {
         nome: formData.nome,
         preco_venda: Number(formData.preco_venda.replace(",", ".")),
         un: formData.un,
+        categoria: formData.categoria,
         createdAt: new Date()
       });
 
@@ -108,6 +110,16 @@ export default function ProdutoCadPage() {
                     className="h-12"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nome">Categoria</Label>
+                <Input 
+                  id="categoria"
+                  value={formData.categoria}
+                  onChange={(e) => setFormData({...formData, categoria: e.target.value})}
+                  placeholder="Sacola"
+                  className="h-12"
+                />
               </div>
 
               <Button 
