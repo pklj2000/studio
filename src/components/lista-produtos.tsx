@@ -10,9 +10,11 @@ import {
 import { db } from "@/lib/firebase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { Categoria } from "@/model/categoria";
 
 interface Produto {
   id: string;
@@ -28,6 +30,8 @@ interface ListaProdutosProps {
 
 export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: ListaProdutosProps) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -57,7 +61,24 @@ export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: Li
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const cat = query(collection(db, "categoria"), orderBy("ordem", "asc"));
+    const unsubscribeCat = onSnapshot(cat, (snapshot) => {
+      const categoriaList: Categoria[] = [];
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        categoriaList.push({ 
+          descricao: data.descricao
+        } as Categoria);
+      });
+
+      setCategorias(categoriaList);
+    });
+
+    return () => {
+      unsubscribe();
+      unsubscribeCat();
+    };
   }, [showAll]);
   
   const selecionarProduto = (item: Produto) => {
@@ -69,8 +90,26 @@ export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: Li
     }
   }
 
+  const selecionarCategoria = (descricao: string) => {
+    setCategoriaSelecionada(prev => prev === descricao ? null : descricao);
+  };
+
   return (
     <div className="relative space-y-8 animate-in fade-in duration-500 pb-20">
+      
+      <div className="flex flex-wrap gap-2 w-full">
+        {categorias.map((cat) => (
+          <Badge 
+            key={cat.descricao}
+            variant={categoriaSelecionada === cat.descricao ? "default" : "outline"}
+            className="cursor-pointer px-4 py-2 text-sm transition-all hover:bg-primary/10"
+            onClick={() => selecionarCategoria(cat.descricao)}
+          >
+            {cat.descricao}
+          </Badge>
+        ))}
+      </div>
+
       <Card className="border-none shadow-xl bg-card overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
