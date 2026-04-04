@@ -18,7 +18,8 @@ export function ListaMenu() {
     { texto: "Consulta Preço", acao: "/produto" },
     { texto: "Histórico Vendas", acao: "/vendas-hist" },
     { texto: "Fechamento", acao: "/fechamento" },
-    { texto: "Cadastro Produto", acao: "/produto-cli" }
+    { texto: "Cadastro Produto", acao: "/produto-cli" },
+    { texto: "Cadastro Cliente", acao: "/cliente-cad" }
   ];
   
   const selecionarMenu = (acao: string) => {

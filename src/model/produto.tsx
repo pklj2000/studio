@@ -5,5 +5,6 @@ interface Produto {
     preco_venda: number;
     qtd_estoque: number;
     un: string;
+    categoria: string;
   }
   

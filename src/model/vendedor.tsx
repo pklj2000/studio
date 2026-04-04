@@ -1,7 +1,8 @@
-interface Cliente {
+interface Vendedor {
     id: string;
     nome: string;
+    ordem: number;
     idVendedor: string;
-    ordem: number;  
+    diasPagto: number;
   }
   

@@ -16,12 +16,6 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Categoria } from "@/model/categoria";
 
-interface Produto {
-  id: string;
-  nome: string;
-  preco_venda: number;
-}
-
 interface ListaProdutosProps {
   showAll?: boolean;
   showAdd?: boolean;
@@ -30,6 +24,7 @@ interface ListaProdutosProps {
 
 export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: ListaProdutosProps) {
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [produtosFiltro, setProdutosFiltro] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +44,8 @@ export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: Li
         produtoList.push({ 
           id: doc.id, 
           nome: data.nome || "Sem nome",
-          preco_venda: data.preco_venda || 0
+          preco_venda: data.preco_venda || 0,
+          categoria: data.categoria
         } as Produto);
       });
 
@@ -58,17 +54,21 @@ export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: Li
       }
 
       setProdutos(produtoList);
+      setProdutosFiltro(produtoList);
       setLoading(false);
     });
 
     const cat = query(collection(db, "categoria"), orderBy("ordem", "asc"));
     const unsubscribeCat = onSnapshot(cat, (snapshot) => {
       const categoriaList: Categoria[] = [];
-      
+      categoriaList.push({ 
+        descricao: "Todos"
+      } as Categoria);
+
       snapshot.forEach((doc) => {
         const data = doc.data();
         categoriaList.push({ 
-          descricao: data.descricao
+          descricao: data.Descricao
         } as Categoria);
       });
 
@@ -91,7 +91,10 @@ export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: Li
   }
 
   const selecionarCategoria = (descricao: string) => {
-    setCategoriaSelecionada(prev => prev === descricao ? null : descricao);
+    const filtrados = produtos.filter(
+      (p) => p.categoria === descricao || descricao === "Todos"
+    );
+    setProdutosFiltro(filtrados);
   };
 
   return (
@@ -116,7 +119,7 @@ export function ListaProdutos({ showAll = false, showAdd = false, onSelect }: Li
             <div className="p-8 text-center text-muted-foreground">Carregando produtos...</div>
           ) : (
             <div className="divide-y divide-border">
-              {produtos.map((produto) => (
+              {produtosFiltro.map((produto) => (
                 <div 
                   key={produto.id} 
                   onClick={() => selecionarProduto(produto)}
